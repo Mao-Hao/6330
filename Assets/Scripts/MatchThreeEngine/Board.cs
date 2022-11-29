@@ -70,7 +70,11 @@ namespace MatchThreeEngine
 
 			if (ensureNoStartingMatches) StartCoroutine(EnsureNoStartingMatches());
 
-			OnMatch += (type, count) => Debug.Log($"Matched {count}x {type.name}.");
+			OnMatch += (type, count) => 
+			{
+				Debug.Log($"Matched {count}x {type.name}.");
+				ScoreBoard.UpdateScore(count * type.value);
+			};
 		}
 
 		private void Update()
@@ -199,16 +203,18 @@ namespace MatchThreeEngine
 			{
 				didMatch = true;
 
+				
+
 				var tiles = GetTiles(match.Tiles);
 
 				var deflateSequence = DOTween.Sequence();
 
-				foreach (var tile in tiles) deflateSequence.Join(tile.icon.transform.DOScale(Vector3.zero, tweenDuration).SetEase(Ease.InBack));
+				foreach (var tile in tiles) 
+					deflateSequence.Join(tile.icon.transform.DOScale(Vector3.zero, tweenDuration).SetEase(Ease.InBack));
 
 				audioSource.PlayOneShot(matchSound);
 
-				await deflateSequence.Play()
-				                     .AsyncWaitForCompletion();
+				await deflateSequence.Play().AsyncWaitForCompletion();
 
 				var inflateSequence = DOTween.Sequence();
 
