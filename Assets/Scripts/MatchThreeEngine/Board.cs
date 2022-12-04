@@ -23,10 +23,10 @@ public sealed class Board : MonoBehaviour
 
     [SerializeField] private TileTypeAsset[] tileTypes;
 
-    // alllow other query the length of tileTypes
-    public int tileTypesLength => tileTypes.Length;
+    // alllow other query the length of normal tileTypes
+    public int normalTileTypesLength => tileTypes.Length - specialTileNum;
 
-    [SerializeField] private TileTypeAsset[] specialTileTypes;	    // special tiles
+    [SerializeField] private int specialTileNum;
 
     [SerializeField] private Row[] rows;
 
@@ -71,12 +71,12 @@ public sealed class Board : MonoBehaviour
         {
             for (var x = 0; x < rows.Max(row => row.tiles.Length); x++)
             {
-                var tile = GetTile(x, y);
+                Tile tile = GetTile(x, y);
 
                 tile.x = x;
                 tile.y = y;
 
-                tile.Type = tileTypes[Random.Range(0, tileTypes.Length)];
+                tile.Type = tileTypes[Random.Range(0, normalTileTypesLength)];
 
                 tile.button.onClick.AddListener(() => Select(tile));
             }
@@ -86,9 +86,9 @@ public sealed class Board : MonoBehaviour
 
         OnMatch += (type, count) =>
         {
-            Debug.Log($"Matched {count}x tile_{type.name}.");
+            // Debug.Log($"Matched {count}x tile_{type.name}.");
             MoneyBoard.Instance.Money += count * count * count * type.value;
-            Risk.Instance.RiskValue += count * type.value * 0.1f;
+            Risk.Instance.RiskValue += count;// * type.value;
         };
 
     }
@@ -136,6 +136,9 @@ public sealed class Board : MonoBehaviour
     private async void Select(Tile tile)
     {
         if (_isSwapping || _isMatching || _isShuffling) return;
+
+        // 这里可以试着让特殊方块不能被选中
+        if (tile.Type.isSpecial) return;
 
         if (!_selection.Contains(tile))
         {
@@ -190,8 +193,7 @@ public sealed class Board : MonoBehaviour
         sequence.Join(icon1Transform.DOMove(icon2Transform.position, tweenDuration).SetEase(Ease.OutBack))
                 .Join(icon2Transform.DOMove(icon1Transform.position, tweenDuration).SetEase(Ease.OutBack));
 
-        await sequence.Play()
-                      .AsyncWaitForCompletion();
+        await sequence.Play().AsyncWaitForCompletion();
 
         icon1Transform.SetParent(tile2.transform);
         icon2Transform.SetParent(tile1.transform);
@@ -221,7 +223,6 @@ public sealed class Board : MonoBehaviour
             didMatch = true;
 
 
-
             var tiles = GetTiles(match.Tiles);
 
             var deflateSequence = DOTween.Sequence();
@@ -235,15 +236,31 @@ public sealed class Board : MonoBehaviour
 
             var inflateSequence = DOTween.Sequence();
 
+            // 在这生成新的方块
             foreach (var tile in tiles)
             {
-                tile.Type = tileTypes[Random.Range(0, tileTypes.Length)];
+                tile.Type = tileTypes[Random.Range(0, normalTileTypesLength)];
+                // 恢复可点击
+                tile.button.interactable = true;
+
+                Debug.Log("RiskValue: " + Risk.Instance.RiskValue);
+
+                if (Risk.Instance.RiskValue > Random.Range(10, 100))
+                {
+                    Debug.Log("特殊方块生成");
+                    tile.Type = tileTypes[Random.Range(normalTileTypesLength, tileTypes.Length)];
+                    // 禁止点击特殊方块
+                    tile.button.interactable = false;
+
+                    // 
+
+                    Risk.Instance.RiskValue = 0;
+                }
 
                 inflateSequence.Join(tile.icon.transform.DOScale(Vector3.one, tweenDuration).SetEase(Ease.OutBack));
             }
 
-            await inflateSequence.Play()
-                                 .AsyncWaitForCompletion();
+            await inflateSequence.Play().AsyncWaitForCompletion();
 
             OnMatch?.Invoke(Array.Find(tileTypes, tileType => tileType.id == match.TypeId), match.Tiles.Length);
 
@@ -261,7 +278,7 @@ public sealed class Board : MonoBehaviour
 
         foreach (var row in rows)
             foreach (var tile in row.tiles)
-                tile.Type = tileTypes[Random.Range(0, tileTypes.Length)];
+                tile.Type = tileTypes[Random.Range(0, normalTileTypesLength)];
 
         _isShuffling = false;
     }

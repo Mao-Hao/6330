@@ -29,9 +29,3 @@ public class Tile : MonoBehaviour
 
     public TileData Data => new TileData(x, y, _type.id);
 }
-
-// special tile types
-public class SpecialTile : Tile
-{
-    public bool isSpecial = true;
-}

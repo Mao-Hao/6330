@@ -8,6 +8,8 @@ public sealed class TileTypeAsset : ScriptableObject
 
     public int value;
 
+    public bool isSpecial;
+
     public Sprite sprite;
 }
 
