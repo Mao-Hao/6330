@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 51d742e6c1f64287bcbf4ece0ac2dc56, type: 3}
-  m_Name: Pig
+  m_Name: 1
   m_EditorClassIdentifier: 
-  id: 4
+  id: 1
   value: 5
-  sprite: {fileID: 21300000, guid: 2ba471a747a174f19873f0ed74b80ed8, type: 3}
+  sprite: {fileID: 21300000, guid: 7cf1b39adb27f442a922f6f80047819f, type: 3}

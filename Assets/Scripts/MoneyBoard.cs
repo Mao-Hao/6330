@@ -3,24 +3,24 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
-public class ScoreBoard : MonoBehaviour
+public class MoneyBoard : MonoBehaviour
 {
     public static TextMeshProUGUI scoreText;
 
-    public static int score = 0;
+    public static int money = 0;
 
-    public static void UpdateScore(int _score)
+    public static void UpdateMoney(int _money)
     {
-        score += _score;
-        scoreText.text = "Score: " + score.ToString();
-        Debug.Log(score);
+        money += _money;
+        scoreText.text = "Money: " + money.ToString();
+        Debug.Log(money);
     }
 
     // Start is called before the first frame Update
     void Start()
     {
         scoreText = gameObject.GetComponent<TextMeshProUGUI>();
-        scoreText.text = "Score: " + score.ToString();
+        scoreText.text = "Money: " + money.ToString();
     }
 
 }

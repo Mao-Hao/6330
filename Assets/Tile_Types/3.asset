@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 51d742e6c1f64287bcbf4ece0ac2dc56, type: 3}
-  m_Name: Parrot
+  m_Name: 3
   m_EditorClassIdentifier: 
   id: 3
   value: 5

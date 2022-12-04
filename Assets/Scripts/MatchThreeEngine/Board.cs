@@ -73,7 +73,7 @@ namespace MatchThreeEngine
 			OnMatch += (type, count) => 
 			{
 				Debug.Log($"Matched {count}x {type.name}.");
-				ScoreBoard.UpdateScore(count * type.value);
+				MoneyBoard.UpdateMoney(count * type.value);
 			};
 		}
 
