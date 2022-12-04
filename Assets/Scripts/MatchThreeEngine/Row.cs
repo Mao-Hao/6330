@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
 
-namespace MatchThreeEngine
+
+public sealed class Row : MonoBehaviour
 {
-	public sealed class Row : MonoBehaviour
-	{
-		public Tile[] tiles;
-	}
+    public Tile[] tiles;
 }
+
