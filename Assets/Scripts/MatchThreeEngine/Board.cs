@@ -8,9 +8,69 @@ using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Random = UnityEngine.Random;
 
+
+public enum SpecialTile
+{
+    MoneyReduction = 0,
+    Bomb = 1,
+    CannotTouch = 2,
+    StrikeNow = 3
+}
+
 public class SpecialTileCounter
 {
+    public List<Tile> sTiles;
+    public SpecialTileCounter() => sTiles = new List<Tile>();
 
+    public void Remove(Tile tile) => sTiles.Remove(tile);
+
+    public void Clear() => sTiles.Clear();
+
+    public int Count => sTiles.Count;
+
+    public bool Contains(Tile tile) => sTiles.Contains(tile);
+
+    public bool IsEmpty() => sTiles.Count == 0;
+}
+
+// 特殊方块在生成之后被扔到这里
+public class SpecialTileCounters
+{
+
+    public SpecialTileCounter[] counters;
+    public SpecialTileCounters(int len)
+    {
+        counters = new SpecialTileCounter[len];
+        for (int i = 0; i < len; i++)
+        {
+            counters[i] = new SpecialTileCounter();
+        }
+    }
+
+    // Operator overload [] to access the counters
+    public SpecialTileCounter this[int index] => counters[index];
+
+    public void Add(Tile tile)
+    {
+        Debug.Assert(tile.Type.isSpecial);
+        int id = tile.Type.id - 100;
+        Debug.Log("Adding " + id + " at col:" + tile.x + " row:" + tile.y);
+        counters[id].sTiles.Add(tile);
+    }
+
+    public void Remove(Tile tile) => counters[tile.Type.id - 100].Remove(tile);
+
+    public void Clear()
+    {
+        for (int i = 0; i < counters.Length; i++)
+            counters[i].Clear();
+    }
+
+    public int Count => counters.Sum(c => c.Count);
+
+    public bool Contains(Tile tile) => counters[tile.Type.id - 100].Contains(tile);
+
+    public bool IsEmpty() => counters.All(c => c.IsEmpty());
 }
 
 public sealed class Board : MonoBehaviour
@@ -21,6 +81,8 @@ public sealed class Board : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+
+        specialTileCounters = new SpecialTileCounters(specialTileNum);
     }
 
 
@@ -29,7 +91,9 @@ public sealed class Board : MonoBehaviour
     // alllow other query the length of normal tileTypes
     public int normalTileTypesLength => tileTypes.Length - specialTileNum;
 
-    [SerializeField] private int specialTileNum;
+    [SerializeField] public int specialTileNum;
+
+    SpecialTileCounters specialTileCounters;
 
     [SerializeField] private Row[] rows;
 
@@ -90,8 +154,18 @@ public sealed class Board : MonoBehaviour
         OnMatch += (type, count) =>
         {
             // Debug.Log($"Matched {count}x tile_{type.name}.");
-            MoneyBoard.Instance.Money += count * count * count * type.value;
-            Risk.Instance.RiskValue += count;// * type.value;
+            double money = count * count * count * type.value;
+
+            if (!specialTileCounters[(int)SpecialTile.MoneyReduction].IsEmpty())
+            {
+                for (int i = 0; i < specialTileCounters[0].Count; i++)
+                    money *= 0.75;
+            }
+
+
+            MoneyBoard.Instance.Money += (int)money;
+
+            Risk.Instance.RiskValue += count;
         };
 
     }
@@ -140,8 +214,14 @@ public sealed class Board : MonoBehaviour
     {
         if (_isSwapping || _isMatching || _isShuffling) return;
 
+        if (tile.Type.canBeSelected == false)
+        {
+            // TODO: Play a sound
+            return;
+        }
+
         // 这里可以试着让特殊方块不能被选中
-        if (tile.Type.isSpecial) return;
+        // if (tile.Type.isSpecial) return;
 
         if (!_selection.Contains(tile))
         {
@@ -150,6 +230,11 @@ public sealed class Board : MonoBehaviour
                 if (Math.Abs(tile.x - _selection[0].x) == 1 && Math.Abs(tile.y - _selection[0].y) == 0
                     || Math.Abs(tile.y - _selection[0].y) == 1 && Math.Abs(tile.x - _selection[0].x) == 0)
                     _selection.Add(tile);
+                else
+                {
+                    _selection.Clear();
+                    _selection.Add(tile);
+                }
             }
             else
             {
@@ -167,9 +252,9 @@ public sealed class Board : MonoBehaviour
 
         while (TileDataMatrixUtility.FindBestMove(matrix) == null || TileDataMatrixUtility.FindBestMatch(matrix) != null)
         {
-            Shuffle();
-
-            matrix = Matrix;
+            // Shuffle();
+            // matrix = Matrix;
+            Debug.Log("No more moves!");
         }
 
         _selection.Clear();
@@ -213,6 +298,35 @@ public sealed class Board : MonoBehaviour
         _isSwapping = false;
     }
 
+    // TODO: 
+    // CountDown and then make the position of the tile to be inactivated
+    private IEnumerator CountDownAndExplode(Tile tile, int times)
+    {
+        while (times > 0)
+        {
+            // 需要音效 倒计时
+            Debug.Log("CountDown: " + times);
+            yield return new WaitForSeconds(1);
+            times--;
+        }
+
+        // 需要音效 爆炸
+        tile.button.interactable = false;
+        // 更改图标为爆炸之后的样子, 需要在Board中添加一个爆炸的sprite存这个图
+        // tile.icon.sprite = ;
+        // 永远的禁用这个方块, 需要在Board里面添加一个记录表, 让洗牌不可以修复这个位置?
+        // 感觉禁用按钮没有意义, 禁用交换即可
+
+
+
+        List<TileData> neighbors = TileDataMatrixUtility.GetNeighbors(Matrix, tile.x, tile.y);
+        foreach (var data in neighbors)
+        {
+            Tile t = GetTile(data.X, data.Y);
+            t.button.interactable = false;
+        }
+    }
+
     private async Task<bool> TryMatchAsync()
     {
         var didMatch = false;
@@ -246,16 +360,28 @@ public sealed class Board : MonoBehaviour
                 // 恢复可点击
                 tile.button.interactable = true;
 
-                Debug.Log("RiskValue: " + Risk.Instance.RiskValue);
-
-                if (Risk.Instance.RiskValue > Random.Range(10, 100))
+                // Debug.Log("RiskValue: " + Risk.Instance.RiskValue);
+                if (Risk.Instance.RiskValue > Random.Range(5, 100))
                 {
-                    Debug.Log("特殊方块生成");
                     tile.Type = tileTypes[Random.Range(normalTileTypesLength, tileTypes.Length)];
-                    // 禁止点击特殊方块
-                    tile.button.interactable = false;
+                    SpecialTile specialTileType = (SpecialTile)(tile.Type.id - 100);
+                    Debug.Log("Generate Special Tile " + specialTileType);
 
-                    // 
+                    if (specialTileType == SpecialTile.CannotTouch)
+                    {
+                        // 禁止点击特殊方块
+                        // tile.button.interactable = false;
+                    }
+
+                    if (specialTileType == SpecialTile.Bomb)
+                    {
+                        StartCoroutine(CountDownAndExplode(tile, 10));
+                    }
+
+
+
+                    // 添加方块到counter
+                    specialTileCounters.Add(tile);
 
                     Risk.Instance.RiskValue = 0;
                 }
@@ -281,7 +407,10 @@ public sealed class Board : MonoBehaviour
 
         foreach (var row in rows)
             foreach (var tile in row.tiles)
+            {
                 tile.Type = tileTypes[Random.Range(0, normalTileTypesLength)];
+                tile.button.interactable = true;
+            }
 
         _isShuffling = false;
     }

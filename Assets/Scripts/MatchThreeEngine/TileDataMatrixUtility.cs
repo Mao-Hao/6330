@@ -3,6 +3,21 @@
 
 public static class TileDataMatrixUtility
 {
+
+    public static List<TileData> GetNeighbors(TileData[,] tiles, int x, int y)
+    {
+        var neighbors = new List<TileData>();
+        var width = tiles.GetLength(0);
+        var height = tiles.GetLength(1);
+
+        if (x > 0) neighbors.Add(tiles[x - 1, y]);
+        if (y > 0) neighbors.Add(tiles[x, y - 1]);
+        if (x < width - 1) neighbors.Add(tiles[x + 1, y]);
+        if (y < height - 1) neighbors.Add(tiles[x, y + 1]);
+
+        return neighbors;
+    }
+
     public static void Swap(int x1, int y1, int x2, int y2, TileData[,] tiles)
     {
         var tile1 = tiles[x1, y1];

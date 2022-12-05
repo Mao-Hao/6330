@@ -10,6 +10,8 @@ public sealed class TileTypeAsset : ScriptableObject
 
     public bool isSpecial;
 
+    public bool canBeSelected;
+
     public Sprite sprite;
 }
 
