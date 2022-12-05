@@ -8,7 +8,10 @@ using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Random = UnityEngine.Random;
 
+public class SpecialTileCounter
+{
 
+}
 
 public sealed class Board : MonoBehaviour
 {
@@ -272,7 +275,7 @@ public sealed class Board : MonoBehaviour
         return didMatch;
     }
 
-    private void Shuffle()
+    public void Shuffle()
     {
         _isShuffling = true;
 
