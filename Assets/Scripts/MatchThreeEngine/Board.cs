@@ -96,7 +96,7 @@ public sealed class Board : MonoBehaviour
 
     [SerializeField] public int specialTileNum;
 
-    SpecialTileCounters specialTileCounters;
+    public SpecialTileCounters specialTileCounters;
 
     [SerializeField] private Row[] rows;
 
