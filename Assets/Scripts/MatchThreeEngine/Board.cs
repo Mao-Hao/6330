@@ -76,6 +76,9 @@ public class SpecialTileCounters
 public sealed class Board : MonoBehaviour
 {
 
+    public AudioSource clock;
+    public AudioSource fail;
+    public AudioSource explode;
     public static Board Instance { get; private set; }
 
     private void Awake()
@@ -217,6 +220,7 @@ public sealed class Board : MonoBehaviour
         if (tile.Type.canBeSelected == false)
         {
             // TODO: Play a sound
+            fail.Play();
             return;
         }
 
@@ -305,12 +309,22 @@ public sealed class Board : MonoBehaviour
         while (times > 0)
         {
             // 需要音效 倒计时
+            clock.Play();
             Debug.Log("CountDown: " + times);
             yield return new WaitForSeconds(1);
             times--;
+            if (times == 0)
+            {
+                
+                explode.Play();
+
+            }
         }
+        clock.Stop();
 
         // 需要音效 爆炸
+
+
         tile.button.interactable = false;
         // 更改图标为爆炸之后的样子, 需要在Board中添加一个爆炸的sprite存这个图
         // tile.icon.sprite = ;
