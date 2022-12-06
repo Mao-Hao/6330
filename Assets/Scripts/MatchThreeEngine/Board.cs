@@ -22,7 +22,9 @@ public class SpecialTileCounter
     public List<Tile> sTiles;
     public SpecialTileCounter() => sTiles = new List<Tile>();
 
-    public void Remove(Tile tile) => sTiles.Remove(tile);
+    public Tile Front => sTiles[0];
+
+    public void Remove() => sTiles.RemoveAt(0);
 
     public void Clear() => sTiles.Clear();
 
@@ -58,7 +60,7 @@ public class SpecialTileCounters
         counters[id].sTiles.Add(tile);
     }
 
-    public void Remove(Tile tile) => counters[tile.Type.id - 100].Remove(tile);
+    public void Remove(int id) => counters[id].Remove();
 
     public void Clear()
     {
@@ -89,7 +91,7 @@ public sealed class Board : MonoBehaviour
     }
 
 
-    [SerializeField] private TileTypeAsset[] tileTypes;
+    [SerializeField] public TileTypeAsset[] tileTypes;
 
     // alllow other query the length of normal tileTypes
     public int normalTileTypesLength => tileTypes.Length - specialTileNum;
@@ -213,7 +215,7 @@ public sealed class Board : MonoBehaviour
         return tiles;
     }
 
-    private async void Select(Tile tile)
+    public async void Select(Tile tile)
     {
         if (_isSwapping || _isMatching || _isShuffling) return;
 
@@ -315,7 +317,7 @@ public sealed class Board : MonoBehaviour
             times--;
             if (times == 0)
             {
-                
+
                 explode.Play();
 
             }

@@ -24,7 +24,15 @@ public class A : MonoBehaviour
             return;
         }
 
-        Debug.Log("Hello World!");
+        MoneyBoard.Instance.Money -= priceA;
+        // TODO: 扣钱的音效?
+
+        Tile tile = Board.Instance.specialTileCounters[(int)SpecialTile.MoneyReduction].Front;
+        tile.Type = Board.Instance.tileTypes[Random.Range(0, Board.Instance.normalTileTypesLength)];
+        tile.button.onClick.AddListener(() => Board.Instance.Select(tile));
+        // TODO: 单个方块重新生成的音效?
+
+        Board.Instance.specialTileCounters.Remove((int)SpecialTile.MoneyReduction);
     }
 
     private void Start()
