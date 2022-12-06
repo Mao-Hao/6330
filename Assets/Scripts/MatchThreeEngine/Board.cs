@@ -77,7 +77,6 @@ public class SpecialTileCounters
 
 public sealed class Board : MonoBehaviour
 {
-
     public AudioSource clock;
     public AudioSource fail;
     public AudioSource explode;
@@ -120,7 +119,7 @@ public sealed class Board : MonoBehaviour
 
     public event Action<TileTypeAsset, int> OnMatch;
 
-    private TileData[,] Matrix
+    public TileData[,] Matrix
     {
         get
         {
@@ -167,7 +166,6 @@ public sealed class Board : MonoBehaviour
                     money *= 0.75;
             }
 
-
             MoneyBoard.Instance.Money += (int)money;
 
             Risk.Instance.RiskValue += count;
@@ -201,7 +199,7 @@ public sealed class Board : MonoBehaviour
         }
     }
 
-    private Tile GetTile(int x, int y) => rows[y].tiles[x];
+    public Tile GetTile(int x, int y) => rows[y].tiles[x];
 
     private Tile[] GetTiles(IList<TileData> tileData)
     {
@@ -310,30 +308,27 @@ public sealed class Board : MonoBehaviour
     {
         while (times > 0)
         {
-            // 需要音效 倒计时
+            // if the tile is already inactivated, then stop the count down
+            if (tile.Type.canBeSelected)
+            {
+                clock.Stop();
+                yield break;
+            }
+
             clock.Play();
             Debug.Log("CountDown: " + times);
             yield return new WaitForSeconds(1);
             times--;
             if (times == 0)
             {
-
                 explode.Play();
-
+                clock.Stop();
+                tile.Type.canBeSelected = true;
+                specialTileCounters.Remove((int)SpecialTile.Bomb);
             }
         }
-        clock.Stop();
-
-        // 需要音效 爆炸
-
 
         tile.button.interactable = false;
-        // 更改图标为爆炸之后的样子, 需要在Board中添加一个爆炸的sprite存这个图
-        // tile.icon.sprite = ;
-        // 永远的禁用这个方块, 需要在Board里面添加一个记录表, 让洗牌不可以修复这个位置?
-        // 感觉禁用按钮没有意义, 禁用交换即可
-
-
 
         List<TileData> neighbors = TileDataMatrixUtility.GetNeighbors(Matrix, tile.x, tile.y);
         foreach (var data in neighbors)
@@ -354,7 +349,6 @@ public sealed class Board : MonoBehaviour
         while (match != null)
         {
             didMatch = true;
-
 
             var tiles = GetTiles(match.Tiles);
 

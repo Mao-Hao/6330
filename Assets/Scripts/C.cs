@@ -4,45 +4,44 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-
-public class A : MonoBehaviour
+public class C : MonoBehaviour
 {
     public Button button;
 
-    public int priceA;
+    public int priceC;
 
-    public TextMeshProUGUI priceAText;
+    public TextMeshProUGUI priceCText;
 
-    private void onClickA()
+    private void onClickC()
     {
         // check the money
-        if (MoneyBoard.Instance.Money < priceA)
+        if (MoneyBoard.Instance.Money < priceC)
         {
             // TODO: 不足的音效?
             Debug.Log("Not enough money!");
             return;
         }
-        if (Board.Instance.specialTileCounters[(int)SpecialTile.MoneyReduction].IsEmpty())
+        if (Board.Instance.specialTileCounters[(int)SpecialTile.CannotTouch].IsEmpty())
         {
-            Debug.Log("No need to do A");
+            Debug.Log("No need to do C");
             return;
         }
 
-        MoneyBoard.Instance.Money -= priceA;
+        MoneyBoard.Instance.Money -= priceC;
         // TODO: 扣钱的音效?
 
-        Tile tile = Board.Instance.specialTileCounters[(int)SpecialTile.MoneyReduction].Front;
+        Tile tile = Board.Instance.specialTileCounters[(int)SpecialTile.CannotTouch].Front;
         tile.Type = Board.Instance.tileTypes[Random.Range(0, Board.Instance.normalTileTypesLength)];
         tile.button.onClick.AddListener(() => Board.Instance.Select(tile));
         // TODO: 单个方块重新生成的音效?
 
-        Board.Instance.specialTileCounters.Remove((int)SpecialTile.MoneyReduction);
+        Board.Instance.specialTileCounters.Remove((int)SpecialTile.CannotTouch);
     }
 
     private void Start()
     {
-        button.onClick.AddListener(onClickA);
-        priceAText.text = "$" + priceA.ToString();
+        button.onClick.AddListener(onClickC);
+        priceCText.text = "$" + priceC.ToString();
     }
 
 }
