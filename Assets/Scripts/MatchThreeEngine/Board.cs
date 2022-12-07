@@ -385,6 +385,7 @@ public sealed class Board : MonoBehaviour
 
                     if (specialTileType == SpecialTile.Bomb)
                     {
+                        tile.Type.canBeSelected = false;
                         StartCoroutine(CountDownAndExplode(tile, 10));
                     }
 
